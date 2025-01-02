@@ -19,6 +19,11 @@
          *  Debugging - print game boards like this:
             var badStateTest = new List<int>() { 6, 4, 1, 8, 7, 0 };
             State.PrintGameStateBoard(badStateTest);        
+
+            Board hashes for a slightly better understanding of the game?
+        
+            var p2Win = new List<int>() { 6, 4, 1, 8, 7, 0 };
+            Console.WriteLine($"State Hash: {State.BoardToStateHash(p2Win)}");
         */
 
         public static void PlayAgainstTrainedAgent() 
@@ -26,14 +31,14 @@
             Player p1 = new Player();
             p1.SetName("noah");
             p1.SetIsHuman();
-            Player p2 = State.LoadWeight();
+            Player p2 = State.LoadWeight(); 
 
             State.PlayAgainstAgent(p1, p2);
         }
 
         public static void Main(string[] args)
         {
-            Console.WriteLine("TicTacToe Agent v0");
+            Console.WriteLine("TicTacToe Agent v0.02");
             PlayAgainstTrainedAgent();
         }
     }

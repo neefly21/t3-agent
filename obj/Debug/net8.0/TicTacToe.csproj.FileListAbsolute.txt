@@ -12,3 +12,4 @@ C:\projects\DotNetCasino\TicTacToe\obj\Debug\net8.0\refint\TicTacToe.dll
 C:\projects\DotNetCasino\TicTacToe\obj\Debug\net8.0\TicTacToe.pdb
 C:\projects\DotNetCasino\TicTacToe\obj\Debug\net8.0\TicTacToe.genruntimeconfig.cache
 C:\projects\DotNetCasino\TicTacToe\obj\Debug\net8.0\ref\TicTacToe.dll
+C:\projects\DotNetCasino\TicTacToe\obj\Debug\net8.0\TicTacToe.sourcelink.json

@@ -26,6 +26,16 @@ namespace TicTacToe
             new List<int>(){ 0, 4, 8 }, new List<int>() { 2, 4, 6 }
         };
 
+        static Dictionary<int, int> BoardPositionToPrime = new Dictionary<int, int>() 
+        {{0, 2},{1, 3},{2, 5},{3, 7},{4, 11},{5, 13},{6, 17},{7, 19},{8, 23}};
+
+        public static int BoardToStateHash(List<int> state) 
+        {
+            var boardState = BoardPositionToPrime[state[0]];
+            foreach (var move in state.Skip(1)) boardState *= BoardPositionToPrime[move];
+            return boardState;
+        }
+
         public static int CheckMovesForEachPlayer(List<int> state)
         {
             List<int> p1 = new List<int>(), p2 = new List<int>();
@@ -79,7 +89,7 @@ namespace TicTacToe
                 PrintGameStateBoard(state);
                 return actionPlayer.HumanChooseAction(possibleActions);
             }
-            else return actionPlayer.ChooseAction(possibleActions);
+            else return actionPlayer.ChooseAction(state, possibleActions);
         }
         
         private static SimpleGame SimplifiedGame(Player p1, Player p2)
@@ -88,31 +98,27 @@ namespace TicTacToe
             List<int> state = new List<int>();
             bool isTerminalState = false;
             int winner = 0;
+            var isFirstPlayer = state.Count() % 2 == 0;
 
             while (!isTerminalState)
             {
+                isFirstPlayer = state.Count() % 2 == 0;
                 var possibleActions = PossibleActions(state);
 
-                if (possibleActions.Count == 0) 
-                {
-                    isTerminalState = true;
-                }
+                if (possibleActions.Count() == 0) isTerminalState = true;
 
-                activePlayerAction = state.Count % 2 == 0 ? GetSimplifiedAction(state, possibleActions, p1) : GetSimplifiedAction(state,possibleActions, p2);
+                activePlayerAction = isFirstPlayer ? GetSimplifiedAction(state, possibleActions, p1) : GetSimplifiedAction(state,possibleActions, p2);
 
                 if (activePlayerAction > -1) { 
                     state.Add(activePlayerAction);
 
-                    if (state.Count - 1 % 2 == 0 && activePlayerAction > 0) p1.States.Add(activePlayerAction);
-                    else p2.States.Add(activePlayerAction);
+                    if (isFirstPlayer && activePlayerAction >= 0) p1.States.Add(state.ToList());
+                    else p2.States.Add(state.ToList());
                 }
 
                 winner = CheckMovesForEachPlayer(state);
                 if (winner > 0) isTerminalState = true;
             }
-
-            if (winner > 0) Console.WriteLine($"p{winner} wins! - {string.Join(",", state)}");
-            else Console.WriteLine("Draw!");
 
             if (!p1.IsHuman && !p2.IsHuman) 
             {
@@ -146,11 +152,10 @@ namespace TicTacToe
             {
                 simpleSims.Add(SimplifiedGame(p1, p2));
 
-                if (simpleSims.Last().Winner == 1) p1Wins++;
-                else p2Wins++;
+                if (simpleSims.Count() % 50000 == 0) Console.WriteLine($"{simpleSims.Count()} of {gamesToTrain} | P1: {p1Wins} v P2: {p2Wins}");
             }
 
-            Console.WriteLine($"P1 wins: {p1Wins} | P2 wins: {p2Wins}\n{gamesToTrain} games ran in {timer.Elapsed}");
+            Console.WriteLine($"{gamesToTrain} games ran in {timer.Elapsed}");
 
             foreach (var player in new[] { p1, p2 })
             {
@@ -162,44 +167,6 @@ namespace TicTacToe
                 }
 
                 Console.WriteLine();
-            }
-        }
-
-        public static void PlayGame(int gamesToTrain, Player p1, Player p2)
-        {
-            int p1Wins = 0, p2Wins = 0;
-            List<int> state = new List<int>();
-            bool isTerminalState = false;
-            Random rand = new Random();
-            int latestAction = 0;
-            int winner = 0;
-
-            while (!isTerminalState)
-            {
-                var possibleActions = PossibleActions(state);
-
-                //if (state.Count % 2 == 0) { latestAction =  }
-                //else { }
-
-                state.Add(possibleActions[rand.Next(possibleActions.Count())]);
-
-                if (state.Count > 4) winner = CheckMovesForEachPlayer(state);
-                if (state.Count == 8) isTerminalState = true;
-            }
-
-            if (winner == 1)
-            {
-                p1.ReceiveReward(1);
-                p1.ResetState();
-                p2.ReceiveReward(0);
-                p2.ResetState();
-            }
-            else if (winner == 2)
-            {
-                p1.ReceiveReward(0);
-                p1.ResetState();
-                p2.ReceiveReward(1);
-                p2.ResetState();
             }
         }
 
@@ -242,9 +209,13 @@ namespace TicTacToe
             for (int i = 0; i < 9; i++)
             {
                 char boardPos = '_';
-                foreach (var move in displayBoard) 
+                for (var j = 0; j < displayBoard.Count; j++) 
                 {
-                    if (move.Item1 == i) boardPos = move.Item2[0]; continue;
+                    if (displayBoard[j].Item1 == i)
+                    {
+                        boardPos = displayBoard[j].Item2[0];
+                        continue;
+                    }
                 }
 
                 Console.Write($" {boardPos} ");
