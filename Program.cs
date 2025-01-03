@@ -39,6 +39,8 @@
         public static void Main(string[] args)
         {
             Console.WriteLine("TicTacToe Agent v0.02");
+
+            TrainAndSaveWeights(15000);
             PlayAgainstTrainedAgent();
         }
     }

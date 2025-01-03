@@ -48,7 +48,7 @@ namespace TicTacToe
         public int ChooseAction(List<int> state, List<int> possibleActions)
         {
             if (possibleActions.Count == 0) return -1;
-            double max_value = 0.0;
+            double max_value = -999;
             Random rand = new Random();
             int action = possibleActions[rand.Next(possibleActions.Count)];
 
@@ -72,7 +72,7 @@ namespace TicTacToe
                     if (!StatesValue.Any(x => x.Key == nextBoardHash)) tempValue = 0;
                     else tempValue = StatesValue[nextBoardHash];
 
-                    if (tempValue > max_value)
+                    if (tempValue >= max_value)
                     {
                         action = nextAction;
                         max_value = tempValue;
