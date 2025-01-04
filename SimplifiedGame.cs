@@ -1,19 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace TicTacToe
+﻿namespace TicTacToe
 {
     public class SimpleGame
     {
-        public SimpleGame(List<int> gameActions, int winner)
+        public SimpleGame(int[] board, int winner)
         {
             Winner = winner;
-            GameActions = gameActions;
+            GameActions = board;
         }
         public int Winner { get; set; }
-        public List<int> GameActions { get; set; } = new List<int>();
+        public int[] GameActions { get; set; }
     }
 }

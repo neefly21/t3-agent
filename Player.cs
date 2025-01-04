@@ -15,9 +15,9 @@ namespace TicTacToe
 
         public double DecayGamma { get; set; } = 0.9;
 
-        public double LearningRate { get; set; } = 0.2;
+        public double LearningRate { get; set; } = 0.25;
 
-        public double ExplorationRate { get; set; } = 0.3;
+        public double ExplorationRate { get; set; } = 0.05;
 
         public List<string> States { get; set; } = new List<string>();
 
@@ -63,7 +63,7 @@ namespace TicTacToe
                 foreach (var nextAction in possibleActions)
                 {
                     var tempBoard = board.ToArray();
-                    tempBoard[nextAction] = possibleActions.Count() % 2 == 0 ? 2 : 1;//Player 1 or 2
+                    tempBoard[nextAction] = possibleActions.Count() % 2 == 0 ? 1 : -1;//Player 1 or 2
 
                     if (StatesValue.ContainsKey(string.Join(',', tempBoard)))
                     {

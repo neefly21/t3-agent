@@ -36,8 +36,8 @@ namespace TicTacToe
             List<int> p1 = new List<int>(), p2 = new List<int>();
             for (int i = 0; i < 9; i++)
             {
-                if (board[i] == 1) p1.Add(i);
-                else if (board[i] == 2) p2.Add(i);
+                if (board[i] == -1) p1.Add(i);
+                else if (board[i] == 1) p2.Add(i);
             }
 
             foreach (var winningPattern in winningStates)
@@ -72,7 +72,7 @@ namespace TicTacToe
         private static SimpleGame SimplifiedGame(Player p1, Player p2)
         {
             int[] board = new int[] { 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-            int activePlayerAction = -1, stateProduct = 0;
+            int activePlayerAction = -1;
             List<int> state = new List<int>();
             var isFirstPlayer = state.Count() % 2 == 0;
             bool isTerminalState = false;
@@ -89,7 +89,7 @@ namespace TicTacToe
 
                 if (activePlayerAction > -1) { 
                     state.Add(activePlayerAction);
-                    board[activePlayerAction] = isFirstPlayer ? 1 : 2;
+                    board[activePlayerAction] = isFirstPlayer ? -1 : 1;
 
                     if (isFirstPlayer && activePlayerAction >= 0) p1.States.Add(string.Join(',', board));
                     else p2.States.Add(string.Join(',', board));
@@ -115,14 +115,19 @@ namespace TicTacToe
                     p2.ReceiveReward(1);
                     p2.ResetState();
                 }
+                else 
+                {
+                    p1.ReceiveReward(.01);
+                    p2.ReceiveReward(.55);
+                }
             }
 
-            return new SimpleGame(state, winner);
+            return new SimpleGame(board, winner);
         }
 
         public static void TrainAgent(int gamesToTrain, Player p1, Player p2)
         {
-            int p1Wins = 0, p2Wins = 0;
+            int p1Wins = 0, p2Wins = 0, ties = 0;
             List<SimpleGame> simpleSims = new List<SimpleGame>();
             Stopwatch timer = new Stopwatch();
 
@@ -131,7 +136,12 @@ namespace TicTacToe
             {
                 simpleSims.Add(SimplifiedGame(p1, p2));
 
-                if (simpleSims.Count() % 50000 == 0) Console.WriteLine($"{simpleSims.Count()} of {gamesToTrain} | P1: {p1Wins} v P2: {p2Wins}");
+                var latestWinner = simpleSims.Last().Winner;
+                if (latestWinner == 1) p1Wins++;
+                else if (latestWinner == 2) p2Wins++;
+                else ties++;
+
+                if (simpleSims.Count() % 50000 == 0) Console.WriteLine($"{simpleSims.Count()} of {gamesToTrain} | P1: {p1Wins} v P2: {p2Wins} | Ties: {ties}");
             }
 
             Console.WriteLine($"{gamesToTrain} games ran in {timer.Elapsed}");
@@ -157,6 +167,7 @@ namespace TicTacToe
             p1.IsHuman = true;
             var gamesPlayed = 0;
             int p1Wins = 0, p2Wins = 0, ties = 0;
+            var gameVsHumanHistory = new List<SimpleGame>();
 
             while (gamesPlayed < Convert.ToInt32(gamesToPlay))
             {
@@ -166,10 +177,21 @@ namespace TicTacToe
                 else if (gameVsHuman.Winner == 2) p2Wins++;
                 else ties++;
 
+                gameVsHumanHistory.Add(gameVsHuman);
+
                 gamesPlayed++;
             }
 
-            Console.WriteLine($"Session Win/Loss: P1:{p1Wins} P2:{p2Wins}");
+            Console.WriteLine("Game History:");
+
+            foreach (var game in gameVsHumanHistory) 
+            {
+                DisplayBoard(game.GameActions);
+                Console.WriteLine("\n");
+            }
+
+            Console.WriteLine($"Session Win/Loss: P1:{p1Wins} - P2:{p2Wins} - Ties:{ties}");
+
         }
 
         private static List<Tuple<int, string>> ConvertStateToTuple(List<int> state)
@@ -187,7 +209,7 @@ namespace TicTacToe
             for (var i = 0; i < 9; i++)
             {
                 var playerSymbol = "-";
-                if(board[i] > 0) playerSymbol = board[i] == 1 ? "X" : "O";
+                if(board[i] != 0) playerSymbol = board[i] == -1 ? "X" : "O";
                 Console.Write($"{playerSymbol}\t");
                 if (i == 2 || i == 5) Console.WriteLine();
             }
