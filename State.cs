@@ -29,94 +29,73 @@ namespace TicTacToe
         static Dictionary<int, int> BoardPositionToPrime = new Dictionary<int, int>() 
         {{0, 2},{1, 3},{2, 5},{3, 7},{4, 11},{5, 13},{6, 17},{7, 19},{8, 23}};
 
-        public static int BoardToStateHash(List<int> state) 
-        {
-            var boardState = BoardPositionToPrime[state[0]];
-            foreach (var move in state.Skip(1)) boardState *= BoardPositionToPrime[move];
-            return boardState;
-        }
-
-        public static int CheckMovesForEachPlayer(List<int> state)
+        public static string BoardToStateHash(int[] board) => string.Join(',', board);
+        
+        public static int CheckMovesForEachPlayer(int[] board)
         {
             List<int> p1 = new List<int>(), p2 = new List<int>();
-            for (int i = 0; i < state.Count; i++)
+            for (int i = 0; i < 9; i++)
             {
-                if (i % 2 == 0) p1.Add(state[i]);
-                else            p2.Add(state[i]);
+                if (board[i] == 1) p1.Add(i);
+                else if (board[i] == 2) p2.Add(i);
             }
 
             foreach (var winningPattern in winningStates)
             {
-                if (!winningPattern.Except(p1).Any())      return 1;
+                if (!winningPattern.Except(p1).Any()) return 1;
                 else if (!winningPattern.Except(p2).Any()) return 2;
             }
 
             return 0;
         }
 
-        public static List<int> PossibleActions(List<int> state) => possibleStates.Except(state).ToList();
-
-        public static void SaveWeights(Player p1, Player p2)
+        public static List<int> PossibleActions(int[] board)
         {
-            var players = new List<Player>() { p1, p2 };
-            var weightsPath = "C:\\projects\\DotNetCasino\\TicTacToe\\Weights";
-            foreach (var player in players)
-            {
-                var playerWeightsString = JsonSerializer.Serialize(player);
-                File.WriteAllText($"{weightsPath}\\{player.Name}", playerWeightsString);
-            }
+            var possibleActions = new List<int>();
+
+            for (var i = 0; i < 9; i++) if (board[i] == 0) possibleActions.Add(i);
+
+            return possibleActions;
+
         }
 
-        public static Player LoadWeight()
-        {
-            Console.Write("Please enter weight file name: ");
-            var weightName = Console.ReadLine();
-            var weightsPath = $"C:\\projects\\DotNetCasino\\TicTacToe\\Weights\\{weightName}";
-            var json = File.ReadAllText(weightsPath);
-
-            var options = new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true
-            };
-
-            return JsonSerializer.Deserialize<Player>(json, options);
-        }
-
-        private static int GetSimplifiedAction(List<int> state, List<int> possibleActions, Player actionPlayer)
+        private static int GetSimplifiedAction(int[] board, List<int> possibleActions, Player actionPlayer)
         {
             if (actionPlayer.IsHuman) 
             {
-                PrintGameStateBoard(state);
+                DisplayBoard(board);
                 return actionPlayer.HumanChooseAction(possibleActions);
             }
-            else return actionPlayer.ChooseAction(state, possibleActions);
+            else return actionPlayer.ChooseAction(board, possibleActions);
         }
         
         private static SimpleGame SimplifiedGame(Player p1, Player p2)
         {
+            int[] board = new int[] { 0, 0, 0, 0, 0, 0, 0, 0, 0 };
             int activePlayerAction = -1, stateProduct = 0;
             List<int> state = new List<int>();
+            var isFirstPlayer = state.Count() % 2 == 0;
             bool isTerminalState = false;
             int winner = 0;
-            var isFirstPlayer = state.Count() % 2 == 0;
 
             while (!isTerminalState)
             {
                 isFirstPlayer = state.Count() % 2 == 0;
-                var possibleActions = PossibleActions(state);
+                var possibleActions = PossibleActions(board);
 
                 if (possibleActions.Count() == 0) isTerminalState = true;
 
-                activePlayerAction = isFirstPlayer ? GetSimplifiedAction(state, possibleActions, p1) : GetSimplifiedAction(state,possibleActions, p2);
+                activePlayerAction = isFirstPlayer ? GetSimplifiedAction(board, possibleActions, p1) : GetSimplifiedAction(board, possibleActions, p2);
 
                 if (activePlayerAction > -1) { 
                     state.Add(activePlayerAction);
+                    board[activePlayerAction] = isFirstPlayer ? 1 : 2;
 
-                    if (isFirstPlayer && activePlayerAction >= 0) p1.States.Add(state.ToList());
-                    else p2.States.Add(state.ToList());
+                    if (isFirstPlayer && activePlayerAction >= 0) p1.States.Add(string.Join(',', board));
+                    else p2.States.Add(string.Join(',', board));
                 }
 
-                winner = CheckMovesForEachPlayer(state);
+                winner = CheckMovesForEachPlayer(board);
                 if (winner > 0) isTerminalState = true;
             }
 
@@ -193,14 +172,25 @@ namespace TicTacToe
             Console.WriteLine($"Session Win/Loss: P1:{p1Wins} P2:{p2Wins}");
         }
 
-        public static void PrintGameStateBoard(List<int> state) => DisplayGameState(state);
-
         private static List<Tuple<int, string>> ConvertStateToTuple(List<int> state)
         {
             var displayBoard = new List<Tuple<int, string>>();
             for (int i = 0; i < state.Count; i++) displayBoard.Add(Tuple.Create(state[i], i % 2 == 0 ? "X" : "O"));
             displayBoard.Sort((x, y) => y.Item1.CompareTo(x.Item1));
             return displayBoard;
+        }
+
+        public static void PrintGameStateBoard(List<int> state) => DisplayGameState(state);
+
+        public static void DisplayBoard(int[] board)
+        {
+            for (var i = 0; i < 9; i++)
+            {
+                var playerSymbol = "-";
+                if(board[i] > 0) playerSymbol = board[i] == 1 ? "X" : "O";
+                Console.Write($"{playerSymbol}\t");
+                if (i == 2 || i == 5) Console.WriteLine();
+            }
         }
 
         private static void DisplayGameState(List<int> state)
@@ -224,5 +214,32 @@ namespace TicTacToe
             }
             
         }
+
+        public static void SaveWeights(Player p1, Player p2)
+        {
+            var players = new List<Player>() { p1, p2 };
+            var weightsPath = "C:\\projects\\DotNetCasino\\TicTacToe\\Weights";
+            foreach (var player in players)
+            {
+                var playerWeightsString = JsonSerializer.Serialize(player);
+                File.WriteAllText($"{weightsPath}\\{player.Name}", playerWeightsString);
+            }
+        }
+
+        public static Player LoadWeight()
+        {
+            Console.Write("Please enter weight file name: ");
+            var weightName = Console.ReadLine();
+            var weightsPath = $"C:\\projects\\DotNetCasino\\TicTacToe\\Weights\\{weightName}";
+            var json = File.ReadAllText(weightsPath);
+
+            var options = new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            };
+
+            return JsonSerializer.Deserialize<Player>(json, options);
+        }
+
     }
 }

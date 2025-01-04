@@ -19,9 +19,9 @@ namespace TicTacToe
 
         public double ExplorationRate { get; set; } = 0.3;
 
-        public List<List<int>> States { get; set; } = new List<List<int>>();
+        public List<string> States { get; set; } = new List<string>();
 
-        public Dictionary<int, double> StatesValue { get; set; } = new Dictionary<int, double>();
+        public Dictionary<string, double> StatesValue { get; set; } = new Dictionary<string, double>();
 
         public void SetName(string name) => Name = name;
 
@@ -29,7 +29,7 @@ namespace TicTacToe
 
         public void ResetState()
         {
-            States = new List<List<int>>();
+            States = new List<string>();
         }
 
         public void ReceiveReward(double reward)
@@ -37,15 +37,13 @@ namespace TicTacToe
             States.Reverse();
             foreach (var st in States)
             {
-                var stateValue = State.BoardToStateHash(st);
-                if (!StatesValue.Any(x => x.Key == stateValue)) StatesValue.Add(stateValue, 0.0);
-                else StatesValue[stateValue] += LearningRate * (DecayGamma * reward - StatesValue[stateValue]);
-
-                reward = StatesValue[stateValue];
+                if (StatesValue.ContainsKey(st)) StatesValue[st] += LearningRate * (DecayGamma * reward - StatesValue[st]);
+                else StatesValue.Add(st, 0.0);
+                reward = StatesValue[st];
             }
         }
 
-        public int ChooseAction(List<int> state, List<int> possibleActions)
+        public int ChooseAction(int[] board, List<int> possibleActions)
         {
             if (possibleActions.Count == 0) return -1;
             double max_value = -999;
@@ -64,13 +62,17 @@ namespace TicTacToe
                 //Does not prune excessively deep low-value choices.
                 foreach (var nextAction in possibleActions)
                 {
-                    var tempState = state.ToList();
-                    tempState.Add(nextAction);
+                    var tempBoard = board.ToArray();
+                    tempBoard[nextAction] = possibleActions.Count() % 2 == 0 ? 2 : 1;//Player 1 or 2
 
-                    var nextBoardHash = State.BoardToStateHash(tempState);
-                    //Does the current board + next action have a strategy? if not, set to 0
-                    if (!StatesValue.Any(x => x.Key == nextBoardHash)) tempValue = 0;
-                    else tempValue = StatesValue[nextBoardHash];
+                    if (StatesValue.ContainsKey(string.Join(',', tempBoard)))
+                    {
+                        tempValue = StatesValue[string.Join(',', tempBoard)];
+                    }
+                    else
+                    {
+                        tempValue = 0;
+                    }
 
                     if (tempValue >= max_value)
                     {
