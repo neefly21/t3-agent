@@ -141,22 +141,10 @@ namespace TicTacToe
                 else if (latestWinner == 2) p2Wins++;
                 else ties++;
 
-                if (simpleSims.Count() % 50000 == 0) Console.WriteLine($"{simpleSims.Count()} of {gamesToTrain} | P1: {p1Wins} v P2: {p2Wins} | Ties: {ties}");
+                if (simpleSims.Count() % 1000 == 0) Console.WriteLine($"\n{simpleSims.Count()} of {gamesToTrain} | P1: {p1Wins} v P2: {p2Wins} | Ties: {ties}");
             }
 
-            Console.WriteLine($"{gamesToTrain} games ran in {timer.Elapsed}");
-
-            foreach (var player in new[] { p1, p2 })
-            {
-                Console.WriteLine($"{player.Name} strategies:");
-
-                foreach (var state_value in player.StatesValue)
-                {
-                    Console.WriteLine($"{state_value.Key} : {state_value.Value}");
-                }
-
-                Console.WriteLine();
-            }
+            Console.WriteLine($"\n{gamesToTrain} games ran in {timer.Elapsed}");
         }
 
         public static void PlayAgainstAgent(Player p1, Player p2)
@@ -164,7 +152,6 @@ namespace TicTacToe
             Console.Write("How many games would you like to play:");
             var gamesToPlay = Console.ReadLine();
 
-            p1.IsHuman = true;
             var gamesPlayed = 0;
             int p1Wins = 0, p2Wins = 0, ties = 0;
             var gameVsHumanHistory = new List<SimpleGame>();

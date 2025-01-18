@@ -2,7 +2,6 @@
 {
     public class Program
     {
-
         public static void TrainAndSaveWeights(int gamesToTrain)
         {
             Player p1 = new Player();
@@ -31,7 +30,7 @@
             Player p1 = new Player();
             p1.SetName("noah");
             p1.SetIsHuman();
-            Player p2 = State.LoadWeight(); 
+            Player p2 = State.LoadWeight();
 
             State.PlayAgainstAgent(p1, p2);
         }
@@ -61,8 +60,6 @@
             }
         }
 
-        
-
         public static void DisplayBoard(int[] board) 
         {
             for (var i = 0; i < 9; i++)
@@ -88,35 +85,6 @@
             //New State representation + storage
 
             //Storage
-            /*
-                The board will be stored as an array of ints 9 long - 0,0,0,0,0,0,0,0,0
-                Each players move will be represented as 0, 1, 2
-                Example Represented as: 0,2,0,0,1,0,0,0,0
-
-                  _0_|_2_|_0_           1,2,0,
-                  _0_|_1_|_0_           0,1,2,
-                   0 | 0 | 0            0,0,1
-                
-                
-                Required Updates to move to this board type:
-                    - PossibleActions
-                    - PossibleStates
-                    - WinningStates
-                    - CheckMovesForEachPlayer
-              
-            9 % 2 = 1
-            8 % 2 = 0
-            7 % 2 = 1
-            6 % 2 = 0
-            5 % 2 = 1
-            4 % 2 = 0
-            3 % 2 = 1
-            2 % 2 = 0
-            1 % 2 = 1
-
-                    
-             */
-
             PlayAgainstTrainedAgent();
         }
     }
